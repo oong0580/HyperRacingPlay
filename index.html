@@ -4,9 +4,34 @@
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Unity WebGL Player | HyperRacing</title>
+        <script src="https://imasdk.googleapis.com/js/sdkloader/ima3.js"></script>
   </head>
   <body style="text-align: center; padding: 0; border: 0; margin: 0;">
     <canvas id="unity-canvas" width=720 height=1280 tabindex="-1" style="width: 720px; height: 1280px; background: url('Build/test.jpg') center / cover"></canvas>
+        <script>
+      function showRewardAd() {
+        adBreak({
+          type: 'reward',
+          name: 'rewardedAd',
+          beforeAd: () => {
+            console.log("[Ad] 광고 시작");
+          },
+          afterAd: (adWasShown) => {
+            if (adWasShown) {
+              SendMessage('RewardAdManager', 'OnRewardAdComplete');
+            } else {
+              console.log("[Ad] 광고 실패 또는 건너뜀");
+            }
+          },
+          adDismissed: () => {
+            console.log("[Ad] 닫힘");
+          },
+          adViewed: () => {
+            console.log("[Ad] 시청 완료");
+          }
+        });
+      }
+    </script>
     <script src="Build/test.loader.js"></script>
     <script>
       if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
