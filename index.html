@@ -26,30 +26,81 @@
     </div>
 </div>
 <script>
-    window.showRewardAd = function () {
-        console.log("[Ad] 광고 호출 시도됨");
+  window.showRewardAd = function () {
+    console.log("[IMA] 광고 호출");
 
-        adBreak({
-            type: 'reward',
-            name: 'rewardedAd',
-            beforeAd: () => {
-                console.log("[Ad] 광고 시작 전");
-            },
-            afterAd: (adWasShown) => {
-                if (adWasShown && window.unityInstance) {
-                    console.log("[Ad] 광고 성공적으로 시청됨");
-                    window.unityInstance.SendMessage('RewardAdManager', 'OnRewardAdComplete');
-                }
-            },
-            adDismissed: () => {
-                console.log("[Ad] 사용자가 광고를 닫음");
-            },
-            adViewed: () => {
-                console.log("[Ad] 광고 끝까지 시청됨");
-            }
+    var adContainer = document.createElement("div");
+    adContainer.id = "ad-container";
+    adContainer.style.position = "absolute";
+    adContainer.style.top = "0";
+    adContainer.style.left = "0";
+    adContainer.style.width = "100%";
+    adContainer.style.height = "100%";
+    adContainer.style.zIndex = "9999";
+    adContainer.style.backgroundColor = "black";
+    document.body.appendChild(adContainer);
+
+    var videoContent = document.createElement("video");
+    videoContent.style.display = "none";
+    document.body.appendChild(videoContent);
+
+    var adDisplayContainer = new google.ima.AdDisplayContainer(adContainer, videoContent);
+    var adsLoader = new google.ima.AdsLoader(adDisplayContainer);
+    var adsManager = null;
+
+    adsLoader.addEventListener(
+      google.ima.AdsManagerLoadedEvent.Type.ADS_MANAGER_LOADED,
+      function (adsManagerLoadedEvent) {
+        console.log("[IMA] 광고 로딩 완료");
+
+        adsManager = adsManagerLoadedEvent.getAdsManager(videoContent);
+
+        adsManager.addEventListener(google.ima.AdEvent.Type.COMPLETE, function () {
+          console.log("[IMA] 광고 시청 완료");
+          document.body.removeChild(adContainer);
+          if (window.unityInstance) {
+            window.unityInstance.SendMessage('RewardAdManager', 'OnRewardAdComplete');
+          }
         });
-    };
+
+        adsManager.addEventListener(google.ima.AdErrorEvent.Type.AD_ERROR, function (adErrorEvent) {
+          console.warn("[IMA] 광고 에러", adErrorEvent.getError());
+          document.body.removeChild(adContainer);
+        });
+
+        try {
+          adsManager.init(window.innerWidth, window.innerHeight, google.ima.ViewMode.NORMAL);
+          adsManager.start();
+        } catch (e) {
+          console.error("AdsManager 시작 실패", e);
+          document.body.removeChild(adContainer);
+        }
+      },
+      false
+    );
+
+    adsLoader.addEventListener(
+      google.ima.AdErrorEvent.Type.AD_ERROR,
+      function (adErrorEvent) {
+        console.warn("[IMA] 광고 로딩 실패", adErrorEvent.getError());
+        document.body.removeChild(adContainer);
+      },
+      false
+    );
+
+    adDisplayContainer.initialize();
+
+    const adsRequest = new google.ima.AdsRequest();
+    adsRequest.adTagUrl = "https://pubads.g.doubleclick.net/gampad/ads?iu=/21775744923/external/single_ad_samples&description_url=https%3A%2F%2Fexample.com&env=vp&impl=s&gdfp_req=1&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Drewarded&correlator=";
+    adsRequest.linearAdSlotWidth = window.innerWidth;
+    adsRequest.linearAdSlotHeight = window.innerHeight;
+    adsRequest.nonLinearAdSlotWidth = window.innerWidth;
+    adsRequest.nonLinearAdSlotHeight = window.innerHeight;
+
+    adsLoader.requestAds(adsRequest);
+  };
 </script>
+
 <script>
 
     var container = document.querySelector("#unity-container");
