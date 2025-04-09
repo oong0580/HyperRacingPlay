@@ -4,193 +4,107 @@
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Unity WebGL Player | HyperRacing</title>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8120147973977755"
-            crossorigin="anonymous"></script>
+    <script src="https://imasdk.googleapis.com/js/sdkloader/ima3.js"></script>
     <style>
-      /* Unity 캔버스와 광고 오버레이 위치 조정 */
-      #unityContainer {
-        position: relative;
-        width: 960px;
-        height: 600px;
-        margin: 0 auto;
-      }
-      /* 리워드 광고 오버레이 (초기 상태는 숨김) */
-      #rewardAdOverlay {
+      #adContainer {
         position: absolute;
-        top: 0;
-        left: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(0,0,0,0.7); /* 반투명 배경 */
-        display: none;
-        z-index: 100;
+        z-index: 10;
+        background-color: black;
       }
-      #rewardAdContent {
+      #unityContainer {
         position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: #fff;
-        padding: 20px;
-        text-align: center;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
       }
     </style>
-    <link rel="shortcut icon" href="TemplateData/favicon.ico">
-    <link rel="stylesheet" href="TemplateData/style.css">
   </head>
-  <body>
-    <div id="unity-container" class="unity-desktop">
-      <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
-      <div id="unity-loading-bar">
-        <div id="unity-logo"></div>
-        <div id="unity-progress-bar-empty">
-          <div id="unity-progress-bar-full"></div>
-        </div>
-      </div>
-      <div id="unity-warning"> </div>
-      <div id="unity-footer">
-        <div id="unity-webgl-logo"></div>
-        <div id="unity-fullscreen-button"></div>
-        <div id="unity-build-title">HyperRacing</div>
-      </div>
-    </div>
+  <body style="text-align: center; padding: 0; border: 0; margin: 0;">
+  <!-- 광고 표시용 div -->
+  <div id="adContainer"></div>
+  
+    <canvas id="unity-canvas" width=720 height=1280 tabindex="-1" style="width: 720px; height: 1280px; background: url('Build/test.jpg') center / cover"></canvas>
+    <script src="Build/test.loader.js"></script>
     <script>
-
-      var container = document.querySelector("#unity-container");
-      var canvas = document.querySelector("#unity-canvas");
-      var loadingBar = document.querySelector("#unity-loading-bar");
-      var progressBarFull = document.querySelector("#unity-progress-bar-full");
-      var fullscreenButton = document.querySelector("#unity-fullscreen-button");
-      var warningBanner = document.querySelector("#unity-warning");
-
-      // Shows a temporary message banner/ribbon for a few seconds, or
-      // a permanent error message on top of the canvas if type=='error'.
-      // If type=='warning', a yellow highlight color is used.
-      // Modify or remove this function to customize the visually presented
-      // way that non-critical warnings and error messages are presented to the
-      // user.
-      function unityShowBanner(msg, type) {
-        function updateBannerVisibility() {
-          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
-        }
-        var div = document.createElement('div');
-        div.innerHTML = msg;
-        warningBanner.appendChild(div);
-        if (type == 'error') div.style = 'background: red; padding: 10px;';
-        else {
-          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
-          setTimeout(function() {
-            warningBanner.removeChild(div);
-            updateBannerVisibility();
-          }, 5000);
-        }
-        updateBannerVisibility();
-      }
-
-      var buildUrl = "Build";
-      var loaderUrl = buildUrl + "/test.loader.js";
-      var config = {
-        dataUrl: buildUrl + "/test.data.unityweb",
-        frameworkUrl: buildUrl + "/test.framework.js.unityweb",
-        codeUrl: buildUrl + "/test.wasm.unityweb",
-        streamingAssetsUrl: "StreamingAssets",
-        companyName: "DefaultCompany",
-        productName: "HyperRacing",
-        productVersion: "1.0",
-        showBanner: unityShowBanner,
-      };
-
-      // By default, Unity keeps WebGL canvas render target size matched with
-      // the DOM size of the canvas element (scaled by window.devicePixelRatio)
-      // Set this to false if you want to decouple this synchronization from
-      // happening inside the engine, and you would instead like to size up
-      // the canvas DOM size and WebGL render target sizes yourself.
-      // config.matchWebGLToCanvasSize = false;
-
       if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
         // Mobile device style: fill the whole browser client area with the game canvas:
-
         var meta = document.createElement('meta');
         meta.name = 'viewport';
         meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
         document.getElementsByTagName('head')[0].appendChild(meta);
-        container.className = "unity-mobile";
-        canvas.className = "unity-mobile";
 
-        // To lower canvas resolution on mobile devices to gain some
-        // performance, uncomment the following line:
-        // config.devicePixelRatio = 1;
+        var canvas = document.querySelector("#unity-canvas");
+        canvas.style.width = "100%";
+        canvas.style.height = "100%";
+        canvas.style.position = "fixed";
 
-
-      } else {
-        // Desktop style: Render the game canvas in a window that can be maximized to fullscreen:
-
-        canvas.style.width = "960px";
-        canvas.style.height = "600px";
+        document.body.style.textAlign = "left";
       }
 
-      loadingBar.style.display = "block";
-
-      var script = document.createElement("script");
-      script.src = loaderUrl;
-      script.onload = () => {
-        createUnityInstance(canvas, config, (progress) => {
-          progressBarFull.style.width = 100 * progress + "%";
-              }).then((unityInstance) => {
-                loadingBar.style.display = "none";
-                fullscreenButton.onclick = () => {
-                  unityInstance.SetFullscreen(1);
-                };
-              }).catch((message) => {
-                alert(message);
-              });
-            };
-
-      document.body.appendChild(script);
-
+      createUnityInstance(document.querySelector("#unity-canvas"), {
+        dataUrl: "Build/test.data.unityweb",
+        frameworkUrl: "Build/test.framework.js.unityweb",
+        codeUrl: "Build/test.wasm.unityweb",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "DefaultCompany",
+        productName: "HyperRacing",
+        productVersion: "1.0",
+        // matchWebGLToCanvasSize: false, // Uncomment this to separately control WebGL canvas render size and DOM element size.
+        // devicePixelRatio: 1, // Uncomment this to override low DPI rendering on high DPI displays.
+      });
     </script>
+  <script>
+    var unityInstance = null;
 
-    <!-- 리워드 광고 오버레이 영역 -->
-    <div id="rewardAdOverlay">
-      <div id="rewardAdContent">
-        <!-- 실제 AdSense H5 광고 코드 삽입 영역 -->
-        <p>리워드 광고 영역 (여기에 AdSense H5 광고 코드 삽입)</p>
-        <!-- 테스트 목적으로 광고 완료, 닫기 버튼 제공 -->
-        <button onclick="simulateAdCompletion()">광고 완료 시뮬레이트</button>
-        <button onclick="simulateAdClose()">광고 닫기</button>
-      </div>
-    </div>
-    <script type="text/javascript">
-      // 리워드 광고를 표시하는 함수 (Unity에서 호출)
-      function ShowRewardedAd() {
-        console.log("ShowRewardedAd 호출됨");
-        var overlay = document.getElementById("rewardAdOverlay");
-        if (overlay) {
-          overlay.style.display = "block";
-          // 실제 AdSense H5 광고 코드가 초기화된다면 그 타이밍에 맞춰 작업
-        }
-      }
+    // Unity WebGL 인스턴스 저장
+    createUnityInstance(document.querySelector("#unity-canvas"), {
+      dataUrl: "Build/your.data",
+      frameworkUrl: "Build/your.framework.js",
+      codeUrl: "Build/your.wasm"
+    }).then(function(instance) {
+      unityInstance = instance;
+    });
 
-      // 테스트: 광고 완료 이벤트 시뮬레이트 (실제 광고 완료 이벤트로 대체)
-      function simulateAdCompletion() {
-        console.log("광고 완료 시뮬레이션");
-        document.getElementById("rewardAdOverlay").style.display = "none";
-        // Unity의 RewardedAdManager GameObject의 OnRewardedAdCompleted 함수 호출
-        SendMessage("RewardedAdManager", "OnRewardedAdCompleted");
-      }
+    // 광고 관련 변수들
+    var adDisplayContainer = new google.ima.AdDisplayContainer(
+            document.getElementById('adContainer')
+    );
+    var adsLoader = new google.ima.AdsLoader(adDisplayContainer);
+    var adsManager = null;
 
-      // 테스트: 광고 닫힘 이벤트 시뮬레이트
-      function simulateAdClose() {
-        console.log("광고 닫힘 시뮬레이션");
-        document.getElementById("rewardAdOverlay").style.display = "none";
-        SendMessage("RewardedAdManager", "OnRewardedAdClosed");
-      }
+    adsLoader.addEventListener(
+            google.ima.AdsManagerLoadedEvent.Type.ADS_MANAGER_LOADED,
+            function (event) {
+              adsManager = event.getAdsManager();
+              adsManager.addEventListener(
+                      google.ima.AdEvent.Type.COMPLETE, // 광고 완료
+                      function () {
+                        console.log("광고 완료됨");
+                        // Unity에게 광고 완료 알림
+                        if (unityInstance) {
+                          unityInstance.SendMessage('RewardReceiver', 'OnAdComplete', 'reward');
+                        }
+                      }
+              );
+              adsManager.init(window.innerWidth, window.innerHeight, google.ima.ViewMode.NORMAL);
+              adsManager.start();
+            },
+            false
+    );
 
-      // 실제 광고 SDK 이벤트에 따른 콜백 함수 예시
-      function OnRewardedAdError(errorMsg) {
-        document.getElementById("rewardAdOverlay").style.display = "none";
-        SendMessage("RewardedAdManager", "OnRewardedAdError", errorMsg);
-      }
-    </script>
+    // 광고 요청 함수 (Unity에서 호출할 것)
+    function showRewardAd() {
+      adDisplayContainer.initialize();
+      var adsRequest = new google.ima.AdsRequest();
+      adsRequest.adTagUrl = 'https://pubads.g.doubleclick.net/gampad/ads?iu=/21775744923/external/single_ad_samples&description_url=https%3A%2F%2Fgoogle.com&env=vp&output=vast&unviewed_position_start=1&ad_type=video&sz=640x480&cust_params=rewarded%3D1&correlator=';
+      adsRequest.linearAdSlotWidth = window.innerWidth;
+      adsRequest.linearAdSlotHeight = window.innerHeight;
+      adsRequest.nonLinearAdSlotWidth = window.innerWidth;
+      adsRequest.nonLinearAdSlotHeight = window.innerHeight / 3;
+      adsLoader.requestAds(adsRequest);
+    }
+  </script>
   </body>
 </html>
