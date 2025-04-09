@@ -4,6 +4,8 @@
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Unity WebGL Player | HyperRacing</title>
+    <link rel="shortcut icon" href="TemplateData/favicon.ico">
+    <link rel="stylesheet" href="TemplateData/style.css">
     <script src="https://imasdk.googleapis.com/js/sdkloader/ima3.js"></script>
     <style>
       #adContainer {
@@ -21,90 +23,172 @@
       }
     </style>
   </head>
-  <body style="text-align: center; padding: 0; border: 0; margin: 0;">
+  <body>
+
   <!-- 광고 표시용 div -->
   <div id="adContainer"></div>
   
-    <canvas id="unity-canvas" width=720 height=1280 tabindex="-1" style="width: 720px; height: 1280px; background: url('Build/test.jpg') center / cover"></canvas>
-    <script src="Build/test.loader.js"></script>
+    <div id="unity-container" class="unity-desktop">
+      <canvas id="unity-canvas" width=720 height=1280 tabindex="-1"></canvas>
+      <div id="unity-loading-bar">
+        <div id="unity-logo"></div>
+        <div id="unity-progress-bar-empty">
+          <div id="unity-progress-bar-full"></div>
+        </div>
+      </div>
+      <div id="unity-warning"> </div>
+      <div id="unity-footer">
+        <div id="unity-webgl-logo"></div>
+        <div id="unity-fullscreen-button"></div>
+        <div id="unity-build-title">HyperRacing</div>
+      </div>
+    </div>
     <script>
-      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        // Mobile device style: fill the whole browser client area with the game canvas:
-        var meta = document.createElement('meta');
-        meta.name = 'viewport';
-        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-        document.getElementsByTagName('head')[0].appendChild(meta);
 
-        var canvas = document.querySelector("#unity-canvas");
-        canvas.style.width = "100%";
-        canvas.style.height = "100%";
-        canvas.style.position = "fixed";
+      var container = document.querySelector("#unity-container");
+      var canvas = document.querySelector("#unity-canvas");
+      var loadingBar = document.querySelector("#unity-loading-bar");
+      var progressBarFull = document.querySelector("#unity-progress-bar-full");
+      var fullscreenButton = document.querySelector("#unity-fullscreen-button");
+      var warningBanner = document.querySelector("#unity-warning");
 
-        document.body.style.textAlign = "left";
+      // Shows a temporary message banner/ribbon for a few seconds, or
+      // a permanent error message on top of the canvas if type=='error'.
+      // If type=='warning', a yellow highlight color is used.
+      // Modify or remove this function to customize the visually presented
+      // way that non-critical warnings and error messages are presented to the
+      // user.
+      function unityShowBanner(msg, type) {
+        function updateBannerVisibility() {
+          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+        }
+        var div = document.createElement('div');
+        div.innerHTML = msg;
+        warningBanner.appendChild(div);
+        if (type == 'error') div.style = 'background: red; padding: 10px;';
+        else {
+          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
+          setTimeout(function() {
+            warningBanner.removeChild(div);
+            updateBannerVisibility();
+          }, 5000);
+        }
+        updateBannerVisibility();
       }
 
-      createUnityInstance(document.querySelector("#unity-canvas"), {
-        dataUrl: "Build/test.data.unityweb",
-        frameworkUrl: "Build/test.framework.js.unityweb",
-        codeUrl: "Build/test.wasm.unityweb",
+      var buildUrl = "Build";
+      var loaderUrl = buildUrl + "/test.loader.js";
+      var config = {
+        dataUrl: buildUrl + "/test.data.unityweb",
+        frameworkUrl: buildUrl + "/test.framework.js.unityweb",
+        codeUrl: buildUrl + "/test.wasm.unityweb",
         streamingAssetsUrl: "StreamingAssets",
         companyName: "DefaultCompany",
         productName: "HyperRacing",
         productVersion: "1.0",
-        // matchWebGLToCanvasSize: false, // Uncomment this to separately control WebGL canvas render size and DOM element size.
-        // devicePixelRatio: 1, // Uncomment this to override low DPI rendering on high DPI displays.
-      });
+        showBanner: unityShowBanner,
+      };
+
+      // By default, Unity keeps WebGL canvas render target size matched with
+      // the DOM size of the canvas element (scaled by window.devicePixelRatio)
+      // Set this to false if you want to decouple this synchronization from
+      // happening inside the engine, and you would instead like to size up
+      // the canvas DOM size and WebGL render target sizes yourself.
+      // config.matchWebGLToCanvasSize = false;
+
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        // Mobile device style: fill the whole browser client area with the game canvas:
+
+        var meta = document.createElement('meta');
+        meta.name = 'viewport';
+        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+        document.getElementsByTagName('head')[0].appendChild(meta);
+        container.className = "unity-mobile";
+        canvas.className = "unity-mobile";
+
+        // To lower canvas resolution on mobile devices to gain some
+        // performance, uncomment the following line:
+        // config.devicePixelRatio = 1;
+
+
+      } else {
+        // Desktop style: Render the game canvas in a window that can be maximized to fullscreen:
+
+        canvas.style.width = "720px";
+        canvas.style.height = "1280px";
+      }
+
+      canvas.style.background = "url('" + buildUrl + "/test.jpg') center / cover";
+      loadingBar.style.display = "block";
+
+      var script = document.createElement("script");
+      script.src = loaderUrl;
+      script.onload = () => {
+        createUnityInstance(canvas, config, (progress) => {
+          progressBarFull.style.width = 100 * progress + "%";
+              }).then((unityInstance) => {
+                loadingBar.style.display = "none";
+                fullscreenButton.onclick = () => {
+                  unityInstance.SetFullscreen(1);
+                };
+              }).catch((message) => {
+                alert(message);
+              });
+            };
+
+      document.body.appendChild(script);
+
     </script>
-  <script>
-    var unityInstance = null;
+    <script>
+      var unityInstance = null;
 
-    // Unity WebGL 인스턴스 저장
-    createUnityInstance(document.querySelector("#unity-canvas"), {
-      dataUrl: "Build/your.data",
-      frameworkUrl: "Build/your.framework.js",
-      codeUrl: "Build/your.wasm"
-    }).then(function(instance) {
-      unityInstance = instance;
-    });
+      // Unity WebGL 인스턴스 저장
+      createUnityInstance(document.querySelector("#unity-canvas"), {
+        dataUrl: "Build/your.data",
+        frameworkUrl: "Build/your.framework.js",
+        codeUrl: "Build/your.wasm"
+      }).then(function(instance) {
+        unityInstance = instance;
+      });
 
-    // 광고 관련 변수들
-    var adDisplayContainer = new google.ima.AdDisplayContainer(
-            document.getElementById('adContainer')
-    );
-    var adsLoader = new google.ima.AdsLoader(adDisplayContainer);
-    var adsManager = null;
+      // 광고 관련 변수들
+      var adDisplayContainer = new google.ima.AdDisplayContainer(
+              document.getElementById('adContainer')
+      );
+      var adsLoader = new google.ima.AdsLoader(adDisplayContainer);
+      var adsManager = null;
 
-    adsLoader.addEventListener(
-            google.ima.AdsManagerLoadedEvent.Type.ADS_MANAGER_LOADED,
-            function (event) {
-              adsManager = event.getAdsManager();
-              adsManager.addEventListener(
-                      google.ima.AdEvent.Type.COMPLETE, // 광고 완료
-                      function () {
-                        console.log("광고 완료됨");
-                        // Unity에게 광고 완료 알림
-                        if (unityInstance) {
-                          unityInstance.SendMessage('RewardReceiver', 'OnAdComplete', 'reward');
+      adsLoader.addEventListener(
+              google.ima.AdsManagerLoadedEvent.Type.ADS_MANAGER_LOADED,
+              function (event) {
+                adsManager = event.getAdsManager();
+                adsManager.addEventListener(
+                        google.ima.AdEvent.Type.COMPLETE, // 광고 완료
+                        function () {
+                          console.log("광고 완료됨");
+                          // Unity에게 광고 완료 알림
+                          if (unityInstance) {
+                            unityInstance.SendMessage('RewardReceiver', 'OnAdComplete', 'reward');
+                          }
                         }
-                      }
-              );
-              adsManager.init(window.innerWidth, window.innerHeight, google.ima.ViewMode.NORMAL);
-              adsManager.start();
-            },
-            false
-    );
+                );
+                adsManager.init(window.innerWidth, window.innerHeight, google.ima.ViewMode.NORMAL);
+                adsManager.start();
+              },
+              false
+      );
 
-    // 광고 요청 함수 (Unity에서 호출할 것)
-    function showRewardAd() {
-      adDisplayContainer.initialize();
-      var adsRequest = new google.ima.AdsRequest();
-      adsRequest.adTagUrl = 'https://pubads.g.doubleclick.net/gampad/ads?iu=/21775744923/external/single_ad_samples&description_url=https%3A%2F%2Fgoogle.com&env=vp&output=vast&unviewed_position_start=1&ad_type=video&sz=640x480&cust_params=rewarded%3D1&correlator=';
-      adsRequest.linearAdSlotWidth = window.innerWidth;
-      adsRequest.linearAdSlotHeight = window.innerHeight;
-      adsRequest.nonLinearAdSlotWidth = window.innerWidth;
-      adsRequest.nonLinearAdSlotHeight = window.innerHeight / 3;
-      adsLoader.requestAds(adsRequest);
-    }
-  </script>
+      // 광고 요청 함수 (Unity에서 호출할 것)
+      function showRewardAd() {
+        adDisplayContainer.initialize();
+        var adsRequest = new google.ima.AdsRequest();
+        adsRequest.adTagUrl = 'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&...';
+        adsRequest.linearAdSlotWidth = window.innerWidth;
+        adsRequest.linearAdSlotHeight = window.innerHeight;
+        adsRequest.nonLinearAdSlotWidth = window.innerWidth;
+        adsRequest.nonLinearAdSlotHeight = window.innerHeight / 3;
+        adsLoader.requestAds(adsRequest);
+      }
+    </script>
   </body>
 </html>
