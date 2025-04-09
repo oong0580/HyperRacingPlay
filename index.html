@@ -16,7 +16,7 @@
       background-color: black;
       display: none;
     }
-    #unityContainer {
+    #unity-container {
       position: absolute;
       width: 100%;
       height: 100%;
@@ -25,10 +25,11 @@
   </style>
 </head>
 <body>
-<!-- 광고 표시용 div -->
+
+<!-- 광고 표시용 -->
 <div id="adContainer"></div>
 
-<!-- Unity WebGL 게임 컨테이너 -->
+<!-- Unity WebGL 게임 -->
 <div id="unity-container" class="unity-desktop">
   <canvas id="unity-canvas" width=720 height=1280 tabindex="-1"></canvas>
   <div id="unity-loading-bar">
@@ -119,75 +120,70 @@
   document.body.appendChild(script);
 </script>
 
+<!-- ✅ 광고 코드 -->
 <script>
-  // 광고 로딩 및 통신 처리
   const adContainer = document.getElementById('adContainer');
   const adDisplayContainer = new google.ima.AdDisplayContainer(adContainer);
   const adsLoader = new google.ima.AdsLoader(adDisplayContainer);
   let adsManager = null;
 
   adsLoader.addEventListener(
-          google.ima.AdsManagerLoadedEvent.Type.ADS_MANAGER_LOADED,
-          (event) => {
-            adsManager = event.getAdsManager();
+    google.ima.AdsManagerLoadedEvent.Type.ADS_MANAGER_LOADED,
+    (event) => {
+      adsManager = event.getAdsManager();
 
-            adsManager.addEventListener(
-                    google.ima.AdEvent.Type.COMPLETE,
-                    () => {
-                      adContainer.style.display = 'none';
-                      if (unityInstance) {
-                        unityInstance.SendMessage('RewardReceiver', 'OnAdComplete', 'reward');
-                      }
-                    }
-            );
+      adsManager.addEventListener(google.ima.AdEvent.Type.COMPLETE, () => {
+        adContainer.style.display = 'none';
+        if (unityInstance) {
+          unityInstance.SendMessage('gameover', 'OnAdComplete', 'reward');
+        }
+      });
 
-            adsManager.addEventListener(
-                    google.ima.AdEvent.Type.ALL_ADS_COMPLETED,
-                    () => {
-                      adContainer.style.display = 'none';
-                    }
-            );
+      adsManager.addEventListener(google.ima.AdEvent.Type.ALL_ADS_COMPLETED, () => {
+        adContainer.style.display = 'none';
+      });
 
-            adsManager.init(window.innerWidth, window.innerHeight, google.ima.ViewMode.NORMAL);
-            adsManager.start();
-          }
+      adsManager.init(window.innerWidth, window.innerHeight, google.ima.ViewMode.NORMAL);
+      adsManager.start();
+    }
   );
 
   adsLoader.addEventListener(
-          google.ima.AdErrorEvent.Type.AD_ERROR,
-          (error) => {
-            console.warn("광고 에러:", error.getError());
-            adContainer.style.display = 'none';
-            if (unityInstance) {
-              unityInstance.SendMessage('RewardReceiver', 'OnAdComplete', 'failed');
-            }
-          }
+    google.ima.AdErrorEvent.Type.AD_ERROR,
+    (error) => {
+      console.warn("광고 에러:", error.getError());
+      adContainer.style.display = 'none';
+      if (unityInstance) {
+        unityInstance.SendMessage('gameover', 'OnAdComplete', 'failed');
+      }
+    }
   );
 
-window.showRewardAd = function () {
-const adTag = "https://pubads.g.doubleclick.net/gampad/ads?" +
-  "iu=/21775744923/external/single_ad_samples" +
-  "&description_url=https%3A%2F%2Fexample.com" +
-  "&env=vp&output=vast" +
-  "&unviewed_position_start=1" +
-  "&ad_type=video" +
-  "&sz=640x480" +
-  "&cust_params=rewarded%3D1" +
-  "&correlator=" + Date.now(); // 동적값 필수!
+  // ✅ Unity에서 호출할 전역 광고 함수
+  window.showRewardAd = function () {
+    const adTag = "https://pubads.g.doubleclick.net/gampad/ads?" +
+      "iu=/21775744923/external/single_ad_samples" +
+      "&description_url=https%3A%2F%2Fexample.com" +
+      "&env=vp&output=vast" +
+      "&unviewed_position_start=1" +
+      "&ad_type=video" +
+      "&sz=640x480" +
+      "&cust_params=rewarded%3D1" +
+      "&correlator=" + Date.now();
 
-  adContainer.style.display = 'block';
-  adDisplayContainer.initialize();
+    adContainer.style.display = 'block';
+    adDisplayContainer.initialize();
 
-  const adsRequest = new google.ima.AdsRequest();
-  adsRequest.adTagUrl = adTag;
-  adsRequest.linearAdSlotWidth = window.innerWidth;
-  adsRequest.linearAdSlotHeight = window.innerHeight;
-  adsRequest.nonLinearAdSlotWidth = window.innerWidth;
-  adsRequest.nonLinearAdSlotHeight = window.innerHeight / 3;
+    const adsRequest = new google.ima.AdsRequest();
+    adsRequest.adTagUrl = adTag;
+    adsRequest.linearAdSlotWidth = window.innerWidth;
+    adsRequest.linearAdSlotHeight = window.innerHeight;
+    adsRequest.nonLinearAdSlotWidth = window.innerWidth;
+    adsRequest.nonLinearAdSlotHeight = window.innerHeight / 3;
 
-  adsLoader.requestAds(adsRequest);
-};
-
+    adsLoader.requestAds(adsRequest);
+  };
 </script>
+
 </body>
 </html>
