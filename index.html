@@ -97,38 +97,25 @@
         });
       };
       document.body.appendChild(script);
-
-      // 🎯 Rewarded Ad Function (called from C# via DllImport)
-      function showRewardAd() {
-        if (!unityInstance) {
-          console.warn("[Ad] Unity 인스턴스 없음");
-          return;
-        }
-
-        console.log("[Ad] 광고 호출 시도됨");
-
-        adBreak({
-          type: 'reward',
-          name: 'rewardedAd',
-          beforeAd: () => {
-            console.log("[Ad] 광고 시작 전");
-          },
-          afterAd: (adWasShown) => {
-            if (adWasShown) {
-              console.log("[Ad] 광고 성공적으로 시청됨");
-              unityInstance.SendMessage('RewardAdManager', 'OnRewardAdComplete');
-            } else {
-              console.log("[Ad] 광고 실패 또는 취소");
-            }
-          },
-          adDismissed: () => {
-            console.log("[Ad] 사용자가 광고를 닫음");
-          },
-          adViewed: () => {
-            console.log("[Ad] 광고 끝까지 시청됨");
-          }
-        });
-      }
     </script>
+    <script>
+  window.showRewardAd = function () {
+    console.log("[Ad] 광고 호출 시도됨");
+
+    adBreak({
+      type: 'reward',
+      name: 'rewardedAd',
+      beforeAd: () => {
+        console.log("[Ad] 광고 시작 전");
+      },
+      afterAd: (adWasShown) => {
+        if (adWasShown && window.unityInstance) {
+          console.log("[Ad] 광고 성공적으로 시청됨");
+          unityInstance.SendMessage('RewardAdManager', 'OnRewardAdComplete');
+        }
+      }
+    });
+  };
+</script>
   </body>
 </html>
