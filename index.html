@@ -161,21 +161,22 @@
 
   // ✅ Unity에서 호출할 전역 광고 함수
   window.showRewardAd = function () {
-    const adTag = "https://pubads.g.doubleclick.net/gampad/ads?" +
-      "iu=/21775744923/external/single_ad_samples" +
-      "&description_url=https%3A%2F%2Fexample.com" +
-      "&env=vp&output=vast" +
-      "&unviewed_position_start=1" +
-      "&ad_type=video" +
-      "&sz=640x480" +
-      "&cust_params=rewarded%3D1" +
-      "&correlator=" + Date.now();
 
     adContainer.style.display = 'block';
     adDisplayContainer.initialize();
 
     const adsRequest = new google.ima.AdsRequest();
-    adsRequest.adTagUrl = adTag;
+adsRequest.adTagUrl = 'https://pubads.g.doubleclick.net/gampad/ads?' +
+  'iu=/21775744923/external/single_ad_samples' +
+  '&description_url=https%3A%2F%2Fexample.com' +
+  '&env=vp' +
+  '&output=vast' +
+  '&unviewed_position_start=1' +
+  '&ad_type=video' +
+  '&sz=640x480' +
+  '&cust_params=rewarded%3D1' +
+  '&correlator=' + Date.now();
+
     adsRequest.linearAdSlotWidth = window.innerWidth;
     adsRequest.linearAdSlotHeight = window.innerHeight;
     adsRequest.nonLinearAdSlotWidth = window.innerWidth;
