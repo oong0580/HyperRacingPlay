@@ -140,17 +140,6 @@
 
     </script>
     <script>
-      var unityInstance = null;
-
-      // Unity WebGL 인스턴스 저장
-      createUnityInstance(document.querySelector("#unity-canvas"), {
-        dataUrl: "Build/your.data",
-        frameworkUrl: "Build/your.framework.js",
-        codeUrl: "Build/your.wasm"
-      }).then(function(instance) {
-        unityInstance = instance;
-      });
-
       // 광고 관련 변수들
       var adDisplayContainer = new google.ima.AdDisplayContainer(
               document.getElementById('adContainer')
