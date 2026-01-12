@@ -1,4 +1,4 @@
-const cacheName = "DefaultCompany-HyperRacing-1.0";
+const cacheName = "Millionfy-HyperRacing-1.0.3";
 const contentToCache = [
     "Build/Build.loader.js",
     "Build/Build.framework.js.unityweb",
